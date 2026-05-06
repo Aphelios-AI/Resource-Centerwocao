@@ -1,0 +1,422 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>资源中心</title>
+  <style>
+    :root {
+      --bg-body: #fafafa;
+      --bg-surface: #ffffff;
+      --bg-hover: #f3f4f6;
+      --bg-active: #f9fafb;
+      --border: #e5e7eb;
+      --text-main: #111827;
+      --text-muted: #6b7280;
+      --text-accent: #000000;
+      --primary: #000000;
+      --primary-hover: #374151;
+      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      --radius-lg: 12px;
+      --radius-md: 8px;
+      --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: var(--font-sans);
+      background-color: var(--bg-body);
+      color: var(--text-main);
+      -webkit-font-smoothing: antialiased;
+      line-height: 1.5;
+    }
+
+    .header { background: var(--bg-surface); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 10; }
+    .header-inner { max-width: 1200px; margin: 0 auto; height: 64px; display: flex; align-items: center; padding: 0 24px; }
+    .logo { display: flex; align-items: center; gap: 12px; font-weight: 600; font-size: 18px; color: var(--text-main); letter-spacing: -0.02em; }
+    .logo svg { width: 24px; height: 24px; }
+
+    .container { max-width: 1200px; margin: 0 auto; padding: 40px 24px; display: grid; grid-template-columns: 240px 1fr; gap: 40px; align-items: start; }
+    .sidebar { position: sticky; top: 104px; }
+    .sidebar-title { font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 16px; padding-left: 12px; }
+    .nav-menu { display: flex; flex-direction: column; gap: 4px; }
+    .nav-item { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; border-radius: var(--radius-md); color: var(--text-muted); font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.15s ease; border: none; background: transparent; text-align: left; width: 100%; }
+    .nav-item:hover { background: var(--bg-hover); color: var(--text-main); }
+    .nav-item.active { background: var(--bg-active); color: var(--text-accent); font-weight: 600; }
+    .nav-item .count-badge { background: var(--border); color: var(--text-muted); font-size: 12px; padding: 2px 8px; border-radius: 999px; font-weight: 500; }
+    .nav-item.active .count-badge { background: var(--text-main); color: var(--bg-surface); }
+
+    .content-header { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 24px; padding-bottom: 24px; border-bottom: 1px solid var(--border); }
+    .content-title { margin: 0; font-size: 24px; font-weight: 600; letter-spacing: -0.02em; }
+    .content-meta { color: var(--text-muted); font-size: 14px; margin-top: 8px; }
+
+    .file-list { background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); overflow: hidden; }
+    .file-row { display: flex; align-items: center; padding: 16px 20px; border-bottom: 1px solid var(--border); transition: background-color 0.15s ease; text-decoration: none; color: inherit; }
+    .file-row:last-child { border-bottom: none; }
+    .file-row:hover { background-color: var(--bg-active); }
+    .file-icon { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; background: var(--bg-body); border: 1px solid var(--border); border-radius: var(--radius-md); margin-right: 16px; flex-shrink: 0; color: var(--text-muted); }
+    .file-icon svg { width: 20px; height: 20px; }
+    .file-info { flex: 1; min-width: 0; }
+    .file-name { font-size: 14px; font-weight: 500; color: var(--text-main); margin: 0 0 4px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .file-desc { font-size: 13px; color: var(--text-muted); margin: 0; display: flex; align-items: center; gap: 12px; }
+    .file-category { display: inline-flex; align-items: center; gap: 4px; }
+    .file-category::before { content: ""; display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #d1d5db; }
+    
+    .file-action { opacity: 0; transform: translateX(10px); transition: all 0.2s ease; padding: 8px 16px; background: var(--primary); color: #fff; font-size: 13px; font-weight: 500; border-radius: 6px; display: flex; align-items: center; gap: 6px; }
+    .file-row:hover .file-action { opacity: 1; transform: translateX(0); }
+    .file-action:hover { background: var(--primary-hover); }
+    .file-action svg { width: 14px; height: 14px; }
+
+    .empty-state { padding: 64px 20px; text-align: center; color: var(--text-muted); }
+    .empty-state svg { width: 48px; height: 48px; margin-bottom: 16px; color: #d1d5db; }
+
+    @media (max-width: 768px) {
+      .container { grid-template-columns: 1fr; padding: 24px 16px; gap: 24px; }
+      .sidebar { position: static; }
+      .file-action { opacity: 1; transform: none; padding: 8px; }
+      .file-action span { display: none; }
+    }
+
+    /* 聊天机器人样式 */
+    .chatbot-btn { position: fixed; bottom: 24px; right: 24px; width: 56px; height: 56px; border-radius: 50%; background: var(--text-main); color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: var(--shadow-md); z-index: 100; transition: transform 0.2s; border: none; }
+    .chatbot-btn:hover { transform: scale(1.05); }
+    .chatbot-btn svg { width: 28px; height: 28px; }
+    
+    .chatbot-panel { position: fixed; bottom: 96px; right: 24px; width: 340px; height: 480px; background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow-md); display: flex; flex-direction: column; z-index: 100; opacity: 0; pointer-events: none; transform: translateY(10px); transition: all 0.2s ease; overflow: hidden; }
+    .chatbot-panel.open { opacity: 1; pointer-events: auto; transform: translateY(0); }
+    
+    .chatbot-header { padding: 16px; background: var(--bg-body); border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 15px; }
+    .chatbot-header-icon { width: 32px; height: 32px; background: var(--text-main); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; }
+    .chatbot-header-icon svg { width: 18px; height: 18px; }
+    
+    .chatbot-body { flex: 1; padding: 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; font-size: 14px; background: var(--bg-body); }
+    .chat-msg { display: flex; flex-direction: column; max-width: 85%; }
+    .chat-msg.bot { align-self: flex-start; }
+    .chat-msg.user { align-self: flex-end; align-items: flex-end; }
+    .msg-bubble { padding: 10px 14px; border-radius: var(--radius-md); line-height: 1.4; word-break: break-word; }
+    .chat-msg.bot .msg-bubble { background: var(--bg-surface); border: 1px solid var(--border); color: var(--text-main); border-bottom-left-radius: 2px; }
+    .chat-msg.user .msg-bubble { background: var(--text-main); color: #fff; border-bottom-right-radius: 2px; }
+    
+    .chat-file-card { display: flex; align-items: center; gap: 10px; padding: 8px 10px; margin-top: 8px; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--bg-body); text-decoration: none; color: var(--text-main); transition: background 0.15s; }
+    .chat-file-card:hover { background: var(--bg-hover); }
+    .chat-file-icon { color: var(--text-muted); display: flex; }
+    .chat-file-icon svg { width: 18px; height: 18px; }
+    .chat-file-name { font-size: 13px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 180px; }
+    
+    .chatbot-footer { padding: 12px 16px; background: var(--bg-surface); border-top: 1px solid var(--border); display: flex; gap: 8px; }
+    .chat-input { flex: 1; border: 1px solid var(--border); border-radius: var(--radius-md); padding: 8px 12px; font-size: 14px; outline: none; transition: border-color 0.15s; background: var(--bg-body); }
+    .chat-input:focus { border-color: var(--text-muted); }
+    .chat-send { background: var(--text-main); color: #fff; border: none; border-radius: var(--radius-md); width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: background 0.15s; }
+    .chat-send:hover { background: var(--primary-hover); }
+    .chat-send svg { width: 16px; height: 16px; }
+
+    @media (max-width: 400px) {
+      .chatbot-panel { right: 12px; left: 12px; width: auto; bottom: 88px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="header">
+      <div class="header-inner">
+        <div class="logo">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+          <span>资源中心</span>
+        </div>
+      </div>
+    </header>
+    <main class="container">
+      <aside class="sidebar">
+        <div class="sidebar-title">分类目录</div>
+        <nav id="treeList" class="nav-menu"></nav>
+      </aside>
+      <section class="content">
+        <div class="content-header">
+          <div>
+            <h1 id="mainTitle" class="content-title">加载中...</h1>
+            <p class="content-meta">请选择左侧分类浏览或直接下载所需资源</p>
+          </div>
+        </div>
+        <div id="list" class="file-list"></div>
+      </section>
+    </main>
+
+    <!-- 智能客服浮窗组件 -->
+    <button id="chatbotBtn" class="chatbot-btn" aria-label="打开智能客服">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+    </button>
+
+    <div id="chatbotPanel" class="chatbot-panel">
+      <div class="chatbot-header">
+        <div class="chatbot-header-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+        </div>
+        <span>IT 服务助手</span>
+      </div>
+      <div id="chatbotBody" class="chatbot-body">
+        <div class="chat-msg bot">
+          <div class="msg-bubble">你好！我是内网 IT 助手，如果你不知道下载哪个文件，可以直接问我，比如：“我的C盘满了怎么办？”</div>
+        </div>
+      </div>
+      <div class="chatbot-footer">
+        <input type="text" id="chatInput" class="chat-input" placeholder="输入你想找的问题或文件..." autocomplete="off">
+        <button id="chatSend" class="chat-send">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 彻底分离 UI 和数据，从此之后 html 文件再也不会被后台监控服务破坏
+    let FILES = [];
+    let categories = ["全部"];
+    let activeCategory = "全部";
+
+    const treeListEl = document.getElementById("treeList");
+    const listEl = document.getElementById("list");
+    const mainTitleEl = document.getElementById("mainTitle");
+
+    function getFileIcon(filename) {
+      const ext = filename.split('.').pop().toLowerCase();
+      const icons = {
+        archive: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line><path d="M10 14h4v4h-4z"></path></svg>`,
+        document: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>`,
+        code: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>`,
+        exe: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>`,
+        default: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><polyline points="13 2 13 9 20 9"></polyline></svg>`
+      };
+      if (['zip', 'rar', '7z', 'tar', 'gz'].includes(ext)) return icons.archive;
+      if (['doc', 'docx', 'pdf', 'xls', 'xlsx', 'ppt', 'pptx'].includes(ext)) return icons.document;
+      if (['txt', 'json', 'xml', 'yaml', 'ini', 'conf'].includes(ext)) return icons.code;
+      if (['exe', 'msi', 'bat', 'cmd'].includes(ext)) return icons.exe;
+      return icons.default;
+    }
+
+    function getVisibleFiles() {
+      if (activeCategory === "全部") return FILES;
+      return FILES.filter((f) => f.category === activeCategory);
+    }
+    function getCategoryCount(category) {
+      if (category === "全部") return FILES.length;
+      return FILES.filter((f) => f.category === category).length;
+    }
+
+    function renderTree() {
+      treeListEl.innerHTML = categories.map((c) => {
+        const active = c === activeCategory ? "active" : "";
+        const count = getCategoryCount(c);
+        return `<button class="nav-item ${active}" data-category="${c}"><span>${c}</span><span class="count-badge">${count}</span></button>`;
+      }).join("");
+    }
+
+    function renderList() {
+      const visibleFiles = getVisibleFiles();
+      mainTitleEl.textContent = activeCategory === "全部" ? "全部文件" : activeCategory;
+
+      if (visibleFiles.length === 0) {
+        listEl.innerHTML = `<div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg><div>当前分类下暂无文件</div></div>`;
+        return;
+      }
+
+      listEl.innerHTML = visibleFiles.map((f) => `
+        <a href="${f.href}" class="file-row" download>
+          <div class="file-icon">${getFileIcon(f.name)}</div>
+          <div class="file-info"><h3 class="file-name" title="${f.name}">${f.name}</h3><div class="file-desc"><span class="file-category">${f.category}</span></div></div>
+          <div class="file-action"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg><span>下载</span></div>
+        </a>
+      `).join("");
+    }
+
+    treeListEl.addEventListener("click", (event) => {
+      const target = event.target.closest('.nav-item');
+      if (!target) return;
+      activeCategory = target.dataset.category;
+      renderTree();
+      renderList();
+    });
+
+    // ==========================================
+    // 智能客服逻辑 (基于大语言模型 LLM)
+    // ==========================================
+    
+    // 配置你的 DeepSeek 或 OpenWebUI 参数
+    const LLM_CONFIG = {
+      // 填入你的真实 API Token (例如 sk-xxxx)
+      apiKey: "sk-66de2675927540a08b47fb7466790738", 
+      
+      // DeepSeek 官方接口地址：https://api.deepseek.com/chat/completions
+      // 如果你用的是本地 OpenWebUI / Ollama / LM Studio，请替换为本地地址，例如：
+      // baseURL: "http://127.0.0.1:11434/v1/chat/completions",
+      baseURL: "https://api.deepseek.com/chat/completions",
+      
+      // 模型名称 (DeepSeek 通常为 deepseek-chat。本地模型请填入对应的模型名称)
+      model: "deepseek-chat"
+    };
+
+    const chatbotBtn = document.getElementById("chatbotBtn");
+    const chatbotPanel = document.getElementById("chatbotPanel");
+    const chatInput = document.getElementById("chatInput");
+    const chatSend = document.getElementById("chatSend");
+    const chatbotBody = document.getElementById("chatbotBody");
+
+    let chatHistory = [];
+
+    function appendMessage(text, isUser = false, msgId = null) {
+      const msgDiv = document.createElement("div");
+      msgDiv.className = `chat-msg ${isUser ? 'user' : 'bot'}`;
+      if (msgId) msgDiv.id = msgId;
+      msgDiv.innerHTML = `<div class="msg-bubble">${text}</div>`;
+      chatbotBody.appendChild(msgDiv);
+      chatbotBody.scrollTop = chatbotBody.scrollHeight;
+    }
+
+    function appendFileCard(file) {
+      const cardDiv = document.createElement("a");
+      cardDiv.className = "chat-file-card";
+      cardDiv.href = file.href;
+      cardDiv.download = "";
+      cardDiv.innerHTML = `<div class="chat-file-icon">${getFileIcon(file.name)}</div><div class="chat-file-name" title="${file.name}">${file.name}</div>`;
+      const wrapDiv = document.createElement("div");
+      wrapDiv.className = "chat-msg bot";
+      wrapDiv.appendChild(cardDiv);
+      chatbotBody.appendChild(wrapDiv);
+      chatbotBody.scrollTop = chatbotBody.scrollHeight;
+    }
+
+    async function handleUserMessage() {
+      const text = chatInput.value.trim();
+      if (!text) return;
+      
+      appendMessage(text, true);
+      chatInput.value = "";
+      chatSend.disabled = true;
+
+      const loadingId = "loading-" + Date.now();
+      appendMessage("思考中...", false, loadingId);
+
+      try {
+        // 将当前的实际文件列表信息压缩后传给大模型，让它知道现在有哪些文件
+        const availableFilesInfo = FILES.map(f => `- ${f.name} (分类: ${f.category})`).join("\n");
+        
+        const systemPrompt = `你是公司内网的专业 IT 服务助手。你的任务是友善、准确地帮助员工解决电脑、网络、软件等 IT 问题。
+如果你能够直接解答技术问题，请给出清晰的步骤。
+
+【核心任务】
+你目前可以提供以下局域网内的文件给用户下载：
+${availableFilesInfo}
+
+如果用户的请求可以通过上述列表中的文件解决（例如：清理C盘、远程协助、系统激活、PLM无法下载等），请解答他们的问题，并且**务必在你的回复中包含该文件的完整名称**（例如：你可以下载 xxx.txt 来处理）。
+如果用户的问题与上述文件无关，请利用你的IT专业知识尽力解答。回复尽量简明扼要。`;
+
+        const messages = [
+          { role: "system", content: systemPrompt },
+          ...chatHistory,
+          { role: "user", content: text }
+        ];
+
+        const response = await fetch(LLM_CONFIG.baseURL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${LLM_CONFIG.apiKey}`
+          },
+          body: JSON.stringify({
+            model: LLM_CONFIG.model,
+            messages: messages,
+            temperature: 0.3
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error("API请求失败 (" + response.status + ")");
+        }
+
+        const data = await response.json();
+        const replyText = data.choices[0].message.content;
+
+        // 保存历史记录
+        chatHistory.push({ role: "user", content: text });
+        chatHistory.push({ role: "assistant", content: replyText });
+        if (chatHistory.length > 10) chatHistory = chatHistory.slice(-10);
+
+        // 移除加载状态
+        document.getElementById(loadingId).remove();
+        
+        // 输出大模型的文字回复
+        appendMessage(replyText, false);
+
+        // 智能提取大模型提到的文件名，自动挂载下载卡片
+        const mentionedFiles = FILES.filter(f => replyText.includes(f.name) || replyText.includes(f.name.split('.')[0]));
+        if (mentionedFiles.length > 0) {
+           const uniqueFiles = [...new Map(mentionedFiles.map(item => [item.name, item])).values()];
+           uniqueFiles.forEach(file => appendFileCard(file));
+        }
+
+      } catch (error) {
+        document.getElementById(loadingId).remove();
+        appendMessage("抱歉，大脑连接异常（请检查 API Token 或网络设置）：" + error.message);
+      } finally {
+        chatSend.disabled = false;
+        chatInput.focus();
+      }
+    }
+
+    chatbotBtn.addEventListener("click", () => {
+      chatbotPanel.classList.toggle("open");
+      if (chatbotPanel.classList.contains("open")) chatInput.focus();
+    });
+    chatSend.addEventListener("click", handleUserMessage);
+    chatInput.addEventListener("keypress", (e) => { if (e.key === "Enter") handleUserMessage(); });
+
+    // 初始化：加载数据并渲染 UI
+    function initApp() {
+      categories = ["全部", ...new Set(FILES.map((f) => f.category))];
+      renderTree();
+      renderList();
+    }
+  </script>
+  <!-- 动态挂载数据文件，这彻底避免了正则表达式替换导致的 HTML 文件损坏 -->
+  <script>
+    const dataScript = document.createElement('script');
+    dataScript.src = 'data.js?t=' + new Date().getTime();
+    dataScript.onload = () => { initApp(); };
+    dataScript.onerror = () => { mainTitleEl.textContent = "数据加载失败，请检查服务"; };
+    document.body.appendChild(dataScript);
+  </script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

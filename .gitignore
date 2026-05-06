@@ -1,0 +1,34 @@
+
+# 文件夹（不上传到 GitHub
+常用软件/
+运维工具/
+使用文档/
+常见问题/
+
+# 二进制文件和安装包
+*.exe
+*.msi
+*.zip
+*.rar
+*.7z
+*.iso
+
+# 文档文件
+*.docx
+*.doc
+*.pdf
+
+# 数据和临时文件
+data.js
+error.log
+*.tmp
+*.swp
+
+# 系统文件
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# 配置（包含 API Key 的文件需要单独处理
+config.js
+

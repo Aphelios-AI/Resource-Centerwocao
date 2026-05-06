@@ -1,0 +1,1263 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>资源中心</title>
+  <style>
+    :root {
+      --bg-body: #f5f7fa;
+      --bg-surface: #ffffff;
+      --bg-hover: #f0f2f5;
+      --bg-active: #e8f4ff;
+      --border: #e0e6ed;
+      --text-main: #1d2939;
+      --text-muted: #667085;
+      --text-accent: #2970ff;
+      --primary: #2970ff;
+      --primary-hover: #155fec;
+      --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
+      --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+      --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
+      --radius-lg: 16px;
+      --radius-md: 12px;
+      --radius-sm: 8px;
+      --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: var(--font-sans);
+      background-color: var(--bg-body);
+      color: var(--text-main);
+      -webkit-font-smoothing: antialiased;
+      line-height: 1.6;
+    }
+
+    /* 顶部导航栏 */
+    .header {
+      background: var(--bg-surface);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .header-inner {
+      max-width: 1400px;
+      margin: 0 auto;
+      height: 72px;
+      display: flex;
+      align-items: center;
+      padding: 0 32px;
+      gap: 24px;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 700;
+      font-size: 20px;
+      color: var(--text-main);
+      letter-spacing: -0.02em;
+      white-space: nowrap;
+    }
+
+    .logo svg { width: 28px; height: 28px; color: var(--primary); }
+
+    .search-container {
+      flex: 1;
+      max-width: 600px;
+      position: relative;
+    }
+
+    .search-box {
+      width: 100%;
+      padding: 12px 48px 12px 48px;
+      border: 2px solid var(--border);
+      border-radius: var(--radius-md);
+      font-size: 15px;
+      background: var(--bg-body);
+      transition: all 0.2s ease;
+      outline: none;
+    }
+
+    .search-box:focus {
+      border-color: var(--primary);
+      background: var(--bg-surface);
+      box-shadow: 0 0 0 4px rgba(41, 112, 255, 0.1);
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+    }
+
+    .search-shortcut {
+      position: absolute;
+      right: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 12px;
+      color: var(--text-muted);
+      background: var(--bg-surface);
+      padding: 2px 8px;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+    }
+
+    /* 主容器 */
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 32px;
+    }
+
+    /* 快捷入口区域 */
+    .quick-access {
+      margin-bottom: 40px;
+    }
+
+    .section-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 16px;
+    }
+
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+    }
+
+    .quick-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .quick-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-lg);
+      border-color: var(--primary);
+    }
+
+    .quick-card-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+    }
+
+    .quick-card.software .quick-card-icon { background: #eef4ff; }
+    .quick-card.tools .quick-card-icon { background: #fff4e6; }
+    .quick-card.docs .quick-card-icon { background: #f0fdf4; }
+    .quick-card.faq .quick-card-icon { background: #fef3c7; }
+    .quick-card.ai .quick-card-icon { background: #f3e8ff; }
+
+    .quick-card-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin: 0;
+    }
+
+    .quick-card-desc {
+      font-size: 14px;
+      color: var(--text-muted);
+      margin: 0;
+    }
+
+    .quick-card-count {
+      margin-top: auto;
+      font-size: 13px;
+      color: var(--primary);
+      font-weight: 500;
+    }
+
+    /* 文件区域 */
+    .files-section {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .files-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .view-toggle {
+      display: flex;
+      gap: 4px;
+      background: var(--bg-surface);
+      padding: 4px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border);
+    }
+
+    .view-btn {
+      padding: 8px 12px;
+      border: none;
+      background: transparent;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      color: var(--text-muted);
+      transition: all 0.15s ease;
+    }
+
+    .view-btn.active {
+      background: var(--primary);
+      color: white;
+    }
+
+    .view-btn:hover:not(.active) {
+      background: var(--bg-hover);
+    }
+
+    /* 文件卡片网格 */
+    .file-cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 20px;
+    }
+
+    .file-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      transition: all 0.2s ease;
+    }
+
+    .file-card:hover {
+      box-shadow: var(--shadow-lg);
+      border-color: var(--primary);
+    }
+
+    .file-card-header {
+      padding: 20px;
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+    }
+
+    .file-card-icon {
+      width: 56px;
+      height: 56px;
+      border-radius: var(--radius-md);
+      background: var(--bg-body);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      color: var(--text-muted);
+    }
+
+    .file-card-icon svg { width: 28px; height: 28px; }
+
+    .file-card-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .file-card-name {
+      font-size: 16px;
+      font-weight: 600;
+      margin: 0 0 6px 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .file-card-meta {
+      display: flex;
+      gap: 12px;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .file-card-category {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .file-card-category::before {
+      content: "";
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--primary);
+    }
+
+    .file-card-body {
+      padding: 0 20px 20px 20px;
+    }
+
+    .ai-explanation {
+      background: var(--bg-body);
+      border-radius: var(--radius-md);
+      padding: 14px 16px;
+      margin-bottom: 16px;
+      font-size: 13px;
+      color: var(--text-main);
+      line-height: 1.6;
+    }
+
+    .ai-explanation-title {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      font-size: 13px;
+      color: var(--primary);
+    }
+
+    .file-card-footer {
+      display: flex;
+      gap: 10px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+    }
+
+    .btn {
+      flex: 1;
+      padding: 10px 16px;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      text-decoration: none;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-hover);
+    }
+
+    .btn-secondary {
+      background: var(--bg-hover);
+      color: var(--text-main);
+    }
+
+    .btn-secondary:hover {
+      background: var(--border);
+    }
+
+    /* 搜索结果 */
+    .search-results {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-lg);
+      margin-top: 8px;
+      max-height: 400px;
+      overflow-y: auto;
+      z-index: 200;
+      display: none;
+    }
+
+    .search-results.show {
+      display: block;
+    }
+
+    .search-result-item {
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+      transition: background 0.15s ease;
+    }
+
+    .search-result-item:hover {
+      background: var(--bg-hover);
+    }
+
+    .search-result-item + .search-result-item {
+      border-top: 1px solid var(--border);
+    }
+
+    .search-result-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: var(--radius-sm);
+      background: var(--bg-body);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-muted);
+    }
+
+    .search-result-icon svg { width: 20px; height: 20px; }
+
+    .search-result-info {
+      flex: 1;
+    }
+
+    .search-result-name {
+      font-size: 14px;
+      font-weight: 500;
+      margin: 0 0 2px 0;
+    }
+
+    .search-result-category {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    /* 空状态 */
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--text-muted);
+    }
+
+    .empty-state svg {
+      width: 64px;
+      height: 64px;
+      margin-bottom: 16px;
+      opacity: 0.4;
+    }
+
+    /* 悬浮球助手 */
+    .floating-helper {
+      position: fixed;
+      bottom: 32px;
+      right: 32px;
+      z-index: 500;
+    }
+
+    .floating-btn {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary) 0%, #6366f1 100%);
+      color: white;
+      border: none;
+      cursor: pointer;
+      box-shadow: var(--shadow-lg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+      position: relative;
+      z-index: 501;
+    }
+
+    .floating-btn:hover {
+      transform: scale(1.1);
+      box-shadow: 0 12px 32px rgba(41, 112, 255, 0.4);
+    }
+
+    .floating-btn svg { width: 32px; height: 32px; }
+
+    .floating-panel {
+      position: fixed;
+      bottom: 108px;
+      right: 32px;
+      width: 420px;
+      height: 600px;
+      background: var(--bg-surface);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-lg);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      transform: translateY(20px) scale(0.95);
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.3s ease;
+    }
+
+    .floating-panel.open {
+      transform: translateY(0) scale(1);
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .panel-header {
+      padding: 20px;
+      background: linear-gradient(135deg, var(--primary) 0%, #6366f1 100%);
+      color: white;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .panel-avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .panel-avatar svg { width: 24px; height: 24px; }
+
+    .panel-title {
+      font-size: 16px;
+      font-weight: 600;
+      margin: 0;
+    }
+
+    .panel-subtitle {
+      font-size: 13px;
+      opacity: 0.9;
+      margin: 2px 0 0 0;
+    }
+
+    .panel-body {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+      background: var(--bg-body);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .chat-message {
+      display: flex;
+      flex-direction: column;
+      max-width: 85%;
+    }
+
+    .chat-message.user {
+      align-self: flex-end;
+      align-items: flex-end;
+    }
+
+    .chat-message.bot {
+      align-self: flex-start;
+    }
+
+    .chat-bubble {
+      padding: 12px 16px;
+      border-radius: var(--radius-md);
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .chat-message.user .chat-bubble {
+      background: var(--primary);
+      color: white;
+      border-bottom-right-radius: 4px;
+    }
+
+    .chat-message.bot .chat-bubble {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-bottom-left-radius: 4px;
+    }
+
+    .chat-file-card {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      margin-top: 8px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      text-decoration: none;
+      color: inherit;
+      transition: all 0.15s ease;
+    }
+
+    .chat-file-card:hover {
+      border-color: var(--primary);
+      background: var(--bg-active);
+    }
+
+    .chat-file-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: var(--radius-sm);
+      background: var(--bg-body);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-muted);
+      flex-shrink: 0;
+    }
+
+    .chat-file-icon svg { width: 20px; height: 20px; }
+
+    .chat-file-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .chat-file-name {
+      font-size: 14px;
+      font-weight: 500;
+      margin: 0 0 4px 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .chat-file-category {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .panel-footer {
+      padding: 16px 20px;
+      background: var(--bg-surface);
+      border-top: 1px solid var(--border);
+      display: flex;
+      gap: 10px;
+    }
+
+    .chat-input {
+      flex: 1;
+      padding: 12px 16px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      font-size: 14px;
+      outline: none;
+      background: var(--bg-body);
+      transition: all 0.15s ease;
+    }
+
+    .chat-input:focus {
+      border-color: var(--primary);
+      background: var(--bg-surface);
+    }
+
+    .chat-send {
+      padding: 12px 20px;
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      font-weight: 500;
+      transition: all 0.15s ease;
+    }
+
+    .chat-send:hover {
+      background: var(--primary-hover);
+    }
+
+    .chat-send:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    /* 快速问题 */
+    .quick-questions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .quick-q-btn {
+      padding: 8px 12px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .quick-q-btn:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    /* 响应式 */
+    @media (max-width: 768px) {
+      .header-inner {
+        padding: 0 16px;
+        gap: 12px;
+      }
+
+      .logo span { display: none; }
+
+      .container { padding: 20px 16px; }
+
+      .cards-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .file-cards-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .floating-panel {
+        width: calc(100vw - 32px);
+        right: -16px;
+        bottom: 88px;
+        height: 60vh;
+      }
+
+      .floating-helper {
+        bottom: 16px;
+        right: 16px;
+      }
+
+      .floating-btn {
+        width: 56px;
+        height: 56px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <!-- 顶部导航栏 -->
+    <header class="header">
+      <div class="header-inner">
+        <div class="logo">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+            <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+            <line x1="12" y1="22.08" x2="12" y2="12"></line>
+          </svg>
+          <span>资源中心</span>
+        </div>
+        <div class="search-container">
+          <div class="search-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+          </div>
+          <input type="text" id="searchInput" class="search-box" placeholder="搜索文件、文档、工具...">
+          <span class="search-shortcut">⌘K</span>
+          <div id="searchResults" class="search-results"></div>
+        </div>
+      </div>
+    </header>
+
+    <!-- 主内容区 -->
+    <main class="container">
+      <!-- 快捷入口 -->
+      <section class="quick-access">
+        <div class="section-title">快捷入口</div>
+        <div class="cards-grid" id="quickCards">
+          <div class="quick-card software" data-category="常用软件">
+            <div class="quick-card-icon">🧰</div>
+            <h3 class="quick-card-title">常用软件</h3>
+            <p class="quick-card-desc">办公、开发、常用工具</p>
+            <span class="quick-card-count" id="softwareCount">0 个文件</span>
+          </div>
+          <div class="quick-card tools" data-category="运维工具">
+            <div class="quick-card-icon">🛠</div>
+            <h3 class="quick-card-title">运维工具</h3>
+            <p class="quick-card-desc">系统、网络、诊断工具</p>
+            <span class="quick-card-count" id="toolsCount">0 个文件</span>
+          </div>
+          <div class="quick-card docs" data-category="使用文档">
+            <div class="quick-card-icon">📚</div>
+            <h3 class="quick-card-title">使用文档</h3>
+            <p class="quick-card-desc">安装说明、操作指南</p>
+            <span class="quick-card-count" id="docsCount">0 个文件</span>
+          </div>
+          <div class="quick-card faq" data-category="常见问题">
+            <div class="quick-card-icon">🚨</div>
+            <h3 class="quick-card-title">常见问题</h3>
+            <p class="quick-card-desc">故障排查、问题解答</p>
+            <span class="quick-card-count" id="faqCount">0 个文件</span>
+          </div>
+          <div class="quick-card ai" id="openAiBtn">
+            <div class="quick-card-icon">🤖</div>
+            <h3 class="quick-card-title">AI 助手</h3>
+            <p class="quick-card-desc">智能问答、文件推荐</p>
+            <span class="quick-card-count">随时咨询</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- 文件区域 -->
+      <section class="files-section">
+        <div class="files-header">
+          <div>
+            <h2 class="section-title" style="margin-bottom: 0;" id="currentCategoryTitle">全部资源</h2>
+          </div>
+        </div>
+        <div id="fileCardsGrid" class="file-cards-grid"></div>
+      </section>
+    </main>
+
+    <!-- 悬浮球助手 -->
+    <div class="floating-helper">
+      <button class="floating-btn" id="floatingBtn" aria-label="打开 AI 助手">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+        </svg>
+      </button>
+      <div class="floating-panel" id="floatingPanel">
+        <div class="panel-header">
+          <div class="panel-avatar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+              <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+              <line x1="12" y1="22.08" x2="12" y2="12"></line>
+            </svg>
+          </div>
+          <div>
+            <h3 class="panel-title">IT 小助手</h3>
+            <p class="panel-subtitle">有问题？随时问我</p>
+          </div>
+        </div>
+        <div class="panel-body" id="panelBody">
+          <div class="chat-message bot">
+            <div class="chat-bubble">你好！我是你的专属 IT 助手 👋</div>
+          </div>
+          <div class="chat-message bot">
+            <div class="chat-bubble">我可以帮你推荐文件、解答问题、或者直接下载你需要的东西。有什么可以帮你的？</div>
+          </div>
+          <div class="quick-questions">
+            <button class="quick-q-btn" data-question="有 Chrome 浏览器吗？">有 Chrome 浏览器吗？</button>
+            <button class="quick-q-btn" data-question="C 盘满了怎么办？">C 盘满了怎么办？</button>
+            <button class="quick-q-btn" data-question="怎么激活 Windows？">怎么激活 Windows？</button>
+            <button class="quick-q-btn" data-question="推荐一些好用的工具">推荐一些好用的工具</button>
+          </div>
+        </div>
+        <div class="panel-footer">
+          <input type="text" id="panelInput" class="chat-input" placeholder="输入你的问题...">
+          <button id="panelSend" class="chat-send">发送</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let FILES = [];
+    let activeCategory = "全部";
+    let chatHistory = [];
+    let aiExplainations = {};
+
+    const searchInput = document.getElementById("searchInput");
+    const searchResults = document.getElementById("searchResults");
+    const fileCardsGrid = document.getElementById("fileCardsGrid");
+    const currentCategoryTitle = document.getElementById("currentCategoryTitle");
+
+    // 从 config.js 读取配置（config.js 需要你自己创建）
+    const LLM_CONFIG = {
+      apiKey: typeof CONFIG !== "undefined" ? CONFIG.apiKey : "",
+      baseURL: `http://${window.location.hostname}:18888`,
+      model: typeof CONFIG !== "undefined" ? CONFIG.model : "ark-code-latest"
+    };
+
+    function getFileIcon(filename) {
+      const ext = filename.split('.').pop().toLowerCase();
+      const icons = {
+        archive: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line><path d="M10 14h4v4h-4z"></path></svg>`,
+        document: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>`,
+        code: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>`,
+        exe: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>`,
+        default: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><polyline points="13 2 13 9 20 9"></polyline></svg>`
+      };
+      if (['zip', 'rar', '7z', 'tar', 'gz'].includes(ext)) return icons.archive;
+      if (['doc', 'docx', 'pdf', 'xls', 'xlsx', 'ppt', 'pptx'].includes(ext)) return icons.document;
+      if (['txt', 'json', 'xml', 'yaml', 'ini', 'conf'].includes(ext)) return icons.code;
+      if (['exe', 'msi', 'bat', 'cmd'].includes(ext)) return icons.exe;
+      return icons.default;
+    }
+
+    function getAIExplaination(file) {
+      const name = file.name.toLowerCase();
+      const category = file.category;
+      
+      if (aiExplainations[file.name]) {
+        return aiExplainations[file.name];
+      }
+
+      let expl = "";
+      
+      if (name.includes("chrome") || name.includes("firefox") || name.includes("edge") || name.includes("浏览器")) {
+        expl = "这是一款浏览器安装包，用于访问互联网、浏览网页。安装后可以快速访问各类网站和 Web 应用。";
+      } else if (name.includes(".iso") || name.includes("windows") || name.includes("business")) {
+        expl = "Windows 系统安装镜像文件，包含完整的系统安装包，可用于系统安装、重装或修复系统。";
+      } else if (name.includes("docker")) {
+        expl = "Docker Desktop 是容器化开发工具，用于构建、部署和管理容器应用。适合开发和运维人员使用。";
+      } else if (name.includes("rustdesk") || name.includes("远程")) {
+        expl = "远程协助工具，用于远程控制其他电脑，支持跨平台使用，适合技术支持和远程协作。";
+      } else if (name.includes("激活")) {
+        expl = "Windows 系统激活工具/说明文档，按照步骤操作可以完成系统激活，获取完整功能体验。";
+      } else if (name.includes("c盘") || name.includes("清理")) {
+        expl = "C 盘清理相关文档，包含详细的清理步骤和工具推荐，帮助释放磁盘空间，提升系统性能。";
+      } else if (name.includes("crystaldisk") || name.includes("硬盘")) {
+        expl = "硬盘检测工具，可以查看硬盘健康状态、温度、SMART 信息等，提前发现硬件问题。";
+      } else if (name.includes("battery") || name.includes("电池")) {
+        expl = "笔记本电池健康度检测工具，查看电池损耗情况、设计容量和实际容量，评估电池状态。";
+      } else if (name.includes("diskgenius")) {
+        expl = "DiskGenius 是强大的磁盘分区管理工具，支持分区创建、删除、格式化，以及数据恢复功能。";
+      } else if (name.includes("vpn") || name.includes("代理")) {
+        expl = "网络代理/ VPN 工具，用于网络访问和安全连接，请遵守公司网络使用规范。";
+      } else if (name.includes("office") || name.includes("办公")) {
+        expl = "Office 办公软件安装包，包含 Word、Excel、PowerPoint 等常用办公组件。";
+      } else if (name.includes("pdf")) {
+        expl = "PDF 阅读器或编辑器，用于查看和编辑 PDF 文档。";
+      } else if (category === "说明书") {
+        expl = "使用说明文档，详细介绍软件的安装步骤、配置方法和使用技巧，建议先阅读再操作。";
+      } else if (category === "配置文件") {
+        expl = "配置文件或脚本工具，用于系统配置、环境设置或自动化操作，请根据说明使用。";
+      } else if (category === "安装包") {
+        expl = "软件安装包，下载后双击运行即可按照向导完成安装。";
+      } else {
+        expl = "这是一个实用的工具/文档文件，可以根据文件名判断其用途，下载后按照说明使用。";
+      }
+
+      aiExplainations[file.name] = expl;
+      return expl;
+    }
+
+    function getCategoryFiles(category) {
+      if (category === "全部") return FILES;
+      return FILES.filter(f => f.category === category);
+    }
+
+    function updateCounts() {
+      document.getElementById("softwareCount").textContent = FILES.filter(f => f.category === "常用软件").length + " 个文件";
+      document.getElementById("toolsCount").textContent = FILES.filter(f => f.category === "运维工具").length + " 个文件";
+      document.getElementById("docsCount").textContent = FILES.filter(f => f.category === "使用文档").length + " 个文件";
+      document.getElementById("faqCount").textContent = FILES.filter(f => f.category === "常见问题").length + " 个文件";
+    }
+
+    function renderFileCards() {
+      const files = getCategoryFiles(activeCategory);
+      
+      if (files.length === 0) {
+        fileCardsGrid.innerHTML = `
+          <div class="empty-state" style="grid-column: 1/-1;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+              <line x1="8" y1="21" x2="16" y2="21"></line>
+              <line x1="12" y1="17" x2="12" y2="21"></line>
+            </svg>
+            <div style="font-size: 16px; margin-bottom: 8px;">当前分类下暂无文件</div>
+            <div style="font-size: 14px; color: var(--text-muted);">换个分类试试，或者直接使用搜索功能</div>
+          </div>
+        `;
+        return;
+      }
+
+      fileCardsGrid.innerHTML = files.map(f => `
+        <div class="file-card">
+          <div class="file-card-header">
+            <div class="file-card-icon">${getFileIcon(f.name)}</div>
+            <div class="file-card-info">
+              <h3 class="file-card-name" title="${f.name}">${f.name}</h3>
+              <div class="file-card-meta">
+                <span class="file-card-category">${f.category}</span>
+              </div>
+            </div>
+          </div>
+          <div class="file-card-body">
+            <div class="ai-explanation">
+              <div class="ai-explanation-title">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                  <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                </svg>
+                AI 解说
+              </div>
+              <div>${getAIExplaination(f)}</div>
+            </div>
+            <div class="file-card-footer">
+              <a href="${f.href}" class="btn btn-primary" download>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                  <polyline points="7 10 12 15 17 10"></polyline>
+                  <line x1="12" y1="15" x2="12" y2="3"></line>
+                </svg>
+                下载
+              </a>
+              <button class="btn btn-secondary" onclick="askAIAboutFile('${f.name}')">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                </svg>
+                问 AI
+              </button>
+            </div>
+          </div>
+        </div>
+      `).join("");
+    }
+
+    function performSearch(query) {
+      if (!query.trim()) {
+        searchResults.classList.remove("show");
+        return;
+      }
+
+      const q = query.toLowerCase();
+      const results = FILES.filter(f => 
+        f.name.toLowerCase().includes(q) || 
+        f.category.toLowerCase().includes(q) ||
+        f.desc?.toLowerCase().includes(q)
+      );
+
+      if (results.length === 0) {
+        searchResults.innerHTML = `
+          <div class="search-result-item" style="cursor: default;">
+            <div class="search-result-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+            </div>
+            <div class="search-result-info">
+              <div class="search-result-name">未找到匹配的文件</div>
+              <div class="search-result-category">试试其他关键词，或者问 AI 助手</div>
+            </div>
+          </div>
+        `;
+      } else {
+        searchResults.innerHTML = results.slice(0, 10).map(f => `
+          <div class="search-result-item" onclick="openSearchResult('${f.name}')">
+            <div class="search-result-icon">${getFileIcon(f.name)}</div>
+            <div class="search-result-info">
+              <div class="search-result-name">${f.name}</div>
+              <div class="search-result-category">${f.category}</div>
+            </div>
+          </div>
+        `).join("");
+      }
+
+      searchResults.classList.add("show");
+    }
+
+    function openSearchResult(filename) {
+      const file = FILES.find(f => f.name === filename);
+      if (file) {
+        activeCategory = file.category;
+        currentCategoryTitle.textContent = file.category;
+        searchInput.value = "";
+        searchResults.classList.remove("show");
+        renderFileCards();
+      }
+    }
+
+    function askAIAboutFile(filename) {
+      openFloatingPanel();
+      sendMessage(`详细介绍一下 "${filename}"，这个文件是做什么的？`);
+    }
+
+    function openFloatingPanel() {
+      document.getElementById("floatingPanel").classList.add("open");
+      setTimeout(() => document.getElementById("panelInput").focus(), 100);
+    }
+
+    function appendChatMessage(text, isUser = false) {
+      const panelBody = document.getElementById("panelBody");
+      const msgDiv = document.createElement("div");
+      msgDiv.className = `chat-message ${isUser ? "user" : "bot"}`;
+      msgDiv.innerHTML = `<div class="chat-bubble">${text}</div>`;
+      panelBody.appendChild(msgDiv);
+      panelBody.scrollTop = panelBody.scrollHeight;
+    }
+
+    function appendChatFileCard(file) {
+      const panelBody = document.getElementById("panelBody");
+      const cardDiv = document.createElement("a");
+      cardDiv.className = "chat-file-card";
+      cardDiv.href = file.href;
+      cardDiv.download = "";
+      cardDiv.innerHTML = `
+        <div class="chat-file-icon">${getFileIcon(file.name)}</div>
+        <div class="chat-file-info">
+          <div class="chat-file-name" title="${file.name}">${file.name}</div>
+          <div class="chat-file-category">${file.category}</div>
+        </div>
+      `;
+      const wrapDiv = document.createElement("div");
+      wrapDiv.className = "chat-message bot";
+      wrapDiv.appendChild(cardDiv);
+      panelBody.appendChild(wrapDiv);
+      panelBody.scrollTop = panelBody.scrollHeight;
+    }
+
+    async function sendMessage(text) {
+      if (!text.trim()) return;
+
+      const panelInput = document.getElementById("panelInput");
+      const panelSend = document.getElementById("panelSend");
+
+      appendChatMessage(text, true);
+      panelInput.value = "";
+      panelSend.disabled = true;
+
+      const loadingDiv = document.createElement("div");
+      loadingDiv.className = "chat-message bot";
+      loadingDiv.id = "loading-msg";
+      loadingDiv.innerHTML = `<div class="chat-bubble">思考中...</div>`;
+      document.getElementById("panelBody").appendChild(loadingDiv);
+
+      try {
+        const availableFilesInfo = FILES.map(f => `- ${f.name} (分类: ${f.category})`).join("\n");
+        
+        const systemPrompt = `你是公司内网的专业 IT 服务助手。你的任务是友善、准确地帮助员工解决电脑、网络、软件等 IT 问题。
+如果能够直接解答技术问题，请给出清晰的步骤。
+
+【当前可用文件】
+${availableFilesInfo}
+
+如果用户的请求可以通过上述文件解决，请解答问题，并且务必在回复中提到该文件的完整名称。回复要亲切、简洁、有帮助。`;
+
+        const messages = [
+          { role: "system", content: systemPrompt },
+          ...chatHistory,
+          { role: "user", content: text }
+        ];
+
+        const response = await fetch(LLM_CONFIG.baseURL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${LLM_CONFIG.apiKey}`
+          },
+          body: JSON.stringify({
+            model: LLM_CONFIG.model,
+            messages: messages,
+            temperature: 0.3
+          })
+        });
+
+        if (!response.ok) throw new Error("API请求失败");
+
+        const data = await response.json();
+        const replyText = data.choices[0].message.content;
+
+        chatHistory.push({ role: "user", content: text });
+        chatHistory.push({ role: "assistant", content: replyText });
+        if (chatHistory.length > 10) chatHistory = chatHistory.slice(-10);
+
+        document.getElementById("loading-msg").remove();
+        appendChatMessage(replyText, false);
+
+        const mentionedFiles = FILES.filter(f => replyText.includes(f.name) || replyText.includes(f.name.split('.')[0]));
+        if (mentionedFiles.length > 0) {
+           const uniqueFiles = [...new Map(mentionedFiles.map(item => [item.name, item])).values()];
+           uniqueFiles.forEach(file => appendChatFileCard(file));
+        }
+
+      } catch (error) {
+        document.getElementById("loading-msg")?.remove();
+        appendChatMessage("抱歉，连接有点问题 😅 请稍后再试，或者直接浏览文件列表！", false);
+      } finally {
+        panelSend.disabled = false;
+      }
+    }
+
+    searchInput.addEventListener("input", (e) => performSearch(e.target.value));
+    searchInput.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") {
+        searchResults.classList.remove("show");
+        searchInput.blur();
+      }
+    });
+
+    document.addEventListener("keydown", (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+        e.preventDefault();
+        searchInput.focus();
+      }
+    });
+
+    document.addEventListener("click", (e) => {
+      if (!e.target.closest(".search-container")) {
+        searchResults.classList.remove("show");
+      }
+    });
+
+    document.querySelectorAll(".quick-card").forEach(card => {
+      card.addEventListener("click", () => {
+        if (card.id === "openAiBtn") {
+          openFloatingPanel();
+          return;
+        }
+        const category = card.dataset.category;
+        if (category) {
+          activeCategory = category;
+          currentCategoryTitle.textContent = card.querySelector(".quick-card-title").textContent;
+          renderFileCards();
+          window.scrollTo({ top: document.querySelector(".files-section").offsetTop - 20, behavior: "smooth" });
+        }
+      });
+    });
+
+    document.getElementById("floatingBtn").addEventListener("click", () => {
+      document.getElementById("floatingPanel").classList.toggle("open");
+      if (document.getElementById("floatingPanel").classList.contains("open")) {
+        document.getElementById("panelInput").focus();
+      }
+    });
+
+    document.getElementById("panelSend").addEventListener("click", () => {
+      sendMessage(document.getElementById("panelInput").value);
+    });
+
+    document.getElementById("panelInput").addEventListener("keypress", (e) => {
+      if (e.key === "Enter") sendMessage(document.getElementById("panelInput").value);
+    });
+
+    document.querySelectorAll(".quick-q-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        sendMessage(btn.dataset.question);
+      });
+    });
+
+    function initApp() {
+      updateCounts();
+      renderFileCards();
+    }
+  </script>
+  &lt;!-- 加载配置文件 --&gt;
+  &lt;script src="config.js"&gt;&lt;/script&gt;
+  
+  &lt;script&gt;
+    const dataScript = document.createElement('script');
+    dataScript.src = 'data.js?t=' + new Date().getTime();
+    dataScript.onload = () =&gt; { initApp(); };
+    document.body.appendChild(dataScript);
+  &lt;/script&gt;
+</body>
+</html>

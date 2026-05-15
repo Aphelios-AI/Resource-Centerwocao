@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿﻿﻿﻿<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
@@ -204,35 +204,6 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-    }
-
-    .view-toggle {
-      display: flex;
-      gap: 4px;
-      background: var(--bg-surface);
-      padding: 4px;
-      border-radius: var(--radius-md);
-      border: 1px solid var(--border);
-    }
-
-    .view-btn {
-      padding: 8px 12px;
-      border: none;
-      background: transparent;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 14px;
-      color: var(--text-muted);
-      transition: all 0.15s ease;
-    }
-
-    .view-btn.active {
-      background: var(--primary);
-      color: white;
-    }
-
-    .view-btn:hover:not(.active) {
-      background: var(--bg-hover);
     }
 
     /* 文件卡片网格 */
@@ -744,10 +715,118 @@
         height: 56px;
       }
     }
+
+    .loading-overlay {
+      position: fixed;
+      inset: 0;
+      background: var(--bg-body);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 999;
+      gap: 20px;
+      transition: opacity 0.3s ease;
+    }
+
+    .loading-overlay.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .loading-spinner {
+      width: 48px;
+      height: 48px;
+      border: 4px solid var(--border);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .loading-text {
+      font-size: 15px;
+      color: var(--text-muted);
+    }
+
+    .loading-error {
+      display: none;
+      text-align: center;
+      max-width: 360px;
+    }
+
+    .loading-error.show { display: flex; flex-direction: column; align-items: center; gap: 16px; }
+
+    .loading-error .spinner-wrap { display: none; }
+    .loading-error.show .spinner-wrap { display: none; }
+
+    .loading-error-icon {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: #fef2f2;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #ef4444;
+    }
+
+    .loading-error-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    .loading-error-desc {
+      font-size: 14px;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    .retry-btn {
+      padding: 10px 28px;
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: var(--radius-md);
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.15s ease;
+    }
+
+    .retry-btn:hover { background: var(--primary-hover); }
+
+    .ai-disabled-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 11px;
+      color: #f59e0b;
+    }
   </style>
 </head>
 <body>
   <div class="app">
+    <div class="loading-overlay" id="loadingOverlay">
+      <div class="loading-spinner"></div>
+      <div class="loading-text" id="loadingText">正在加载资源...</div>
+      <div class="loading-error" id="loadingError">
+        <div class="loading-error-icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+          </svg>
+        </div>
+        <div class="loading-error-title">加载失败</div>
+        <div class="loading-error-desc" id="loadingErrorDesc">
+          无法加载文件列表，请检查网络连接或联系管理员。
+        </div>
+        <button class="retry-btn" onclick="location.reload()">重新加载</button>
+      </div>
+    </div>
     <!-- 顶部导航栏 -->
     <header class="header">
       <div class="header-inner">
@@ -866,22 +945,32 @@
     </div>
   </div>
 
+  <!-- 先加载配置文件 -->
+  <script src="config.js"></script>
   <script>
-    let FILES = [];
-    let activeCategory = "全部";
-    let chatHistory = [];
-    let aiExplainations = {};
+    if (typeof CONFIG === 'undefined' || !CONFIG.apiKey || CONFIG.apiKey.indexOf('your-api-key') !== -1) {
+      window._aiDisabled = true;
+    }
+  </script>
 
-    const searchInput = document.getElementById("searchInput");
-    const searchResults = document.getElementById("searchResults");
-    const fileCardsGrid = document.getElementById("fileCardsGrid");
-    const currentCategoryTitle = document.getElementById("currentCategoryTitle");
+  <script>
+    var FILES = [];
+    var activeCategory = "全部";
+    var chatHistory = [];
+    var aiExplainations = {};
 
-    // 从 config.js 读取配置（config.js 需要你自己创建）
-    const LLM_CONFIG = {
-      apiKey: typeof CONFIG !== "undefined" ? CONFIG.apiKey : "",
-      baseURL: `http://${window.location.hostname}:18888`,
-      model: typeof CONFIG !== "undefined" ? CONFIG.model : "ark-code-latest"
+    var searchInput = document.getElementById("searchInput");
+    var searchResults = document.getElementById("searchResults");
+    var fileCardsGrid = document.getElementById("fileCardsGrid");
+    var currentCategoryTitle = document.getElementById("currentCategoryTitle");
+
+    var _aiDisabled = window._aiDisabled || false;
+    var LLM_CONFIG = {
+      apiKey: (typeof CONFIG !== 'undefined' && CONFIG.apiKey) ? CONFIG.apiKey : '',
+      baseURL: (window.location.port === '18888')
+        ? window.location.origin
+        : ('http://' + (window.location.hostname || 'localhost') + ':18888'),
+      model: (typeof CONFIG !== 'undefined' && CONFIG.model) ? CONFIG.model : 'ark-code-latest'
     };
 
     function getFileIcon(filename) {
@@ -900,52 +989,51 @@
       return icons.default;
     }
 
-    function getAIExplaination(file) {
-      const name = file.name.toLowerCase();
-      const category = file.category;
-      
-      if (aiExplainations[file.name]) {
-        return aiExplainations[file.name];
+    async function getAIExplaination(file) {
+      var cacheKey = "ai_explain_v2_" + file.category.replace(/\s/g, '_') + "_" + file.name;
+      var cached = localStorage.getItem(cacheKey);
+      if (cached) return cached;
+
+      if (_aiDisabled || !LLM_CONFIG.apiKey) {
+        return getFallbackExplain(file);
       }
 
-      let expl = "";
-      
-      if (name.includes("chrome") || name.includes("firefox") || name.includes("edge") || name.includes("浏览器")) {
-        expl = "这是一款浏览器安装包，用于访问互联网、浏览网页。安装后可以快速访问各类网站和 Web 应用。";
-      } else if (name.includes(".iso") || name.includes("windows") || name.includes("business")) {
-        expl = "Windows 系统安装镜像文件，包含完整的系统安装包，可用于系统安装、重装或修复系统。";
-      } else if (name.includes("docker")) {
-        expl = "Docker Desktop 是容器化开发工具，用于构建、部署和管理容器应用。适合开发和运维人员使用。";
-      } else if (name.includes("rustdesk") || name.includes("远程")) {
-        expl = "远程协助工具，用于远程控制其他电脑，支持跨平台使用，适合技术支持和远程协作。";
-      } else if (name.includes("激活")) {
-        expl = "Windows 系统激活工具/说明文档，按照步骤操作可以完成系统激活，获取完整功能体验。";
-      } else if (name.includes("c盘") || name.includes("清理")) {
-        expl = "C 盘清理相关文档，包含详细的清理步骤和工具推荐，帮助释放磁盘空间，提升系统性能。";
-      } else if (name.includes("crystaldisk") || name.includes("硬盘")) {
-        expl = "硬盘检测工具，可以查看硬盘健康状态、温度、SMART 信息等，提前发现硬件问题。";
-      } else if (name.includes("battery") || name.includes("电池")) {
-        expl = "笔记本电池健康度检测工具，查看电池损耗情况、设计容量和实际容量，评估电池状态。";
-      } else if (name.includes("diskgenius")) {
-        expl = "DiskGenius 是强大的磁盘分区管理工具，支持分区创建、删除、格式化，以及数据恢复功能。";
-      } else if (name.includes("vpn") || name.includes("代理")) {
-        expl = "网络代理/ VPN 工具，用于网络访问和安全连接，请遵守公司网络使用规范。";
-      } else if (name.includes("office") || name.includes("办公")) {
-        expl = "Office 办公软件安装包，包含 Word、Excel、PowerPoint 等常用办公组件。";
-      } else if (name.includes("pdf")) {
-        expl = "PDF 阅读器或编辑器，用于查看和编辑 PDF 文档。";
-      } else if (category === "说明书") {
-        expl = "使用说明文档，详细介绍软件的安装步骤、配置方法和使用技巧，建议先阅读再操作。";
-      } else if (category === "配置文件") {
-        expl = "配置文件或脚本工具，用于系统配置、环境设置或自动化操作，请根据说明使用。";
-      } else if (category === "安装包") {
-        expl = "软件安装包，下载后双击运行即可按照向导完成安装。";
-      } else {
-        expl = "这是一个实用的工具/文档文件，可以根据文件名判断其用途，下载后按照说明使用。";
-      }
+      try {
+        var response = await fetch(LLM_CONFIG.baseURL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + LLM_CONFIG.apiKey
+          },
+          body: JSON.stringify({
+            model: LLM_CONFIG.model,
+            messages: [
+              { role: "system", content: "你是一个文件解说助手。用户给你一个文件名和分类，你用一句话（不超过40字）简洁说明这个文件的用途。不要加任何前缀，直接说用途。" },
+              { role: "user", content: "文件: \"" + file.name + "\"，分类: \"" + file.category + "\"，请用一句话说明用途。" }
+            ],
+            temperature: 0.1,
+            max_tokens: 80,
+            thinking: { type: "disabled" }
+          })
+        });
 
-      aiExplainations[file.name] = expl;
-      return expl;
+        if (!response.ok) throw new Error("API error");
+
+        var data = await response.json();
+        var expl = data.choices[0].message.content.trim();
+        localStorage.setItem(cacheKey, expl);
+        return expl;
+      } catch (e) {
+        return getFallbackExplain(file);
+      }
+    }
+
+    function getFallbackExplain(file) {
+      var name = file.name.toLowerCase();
+      if (name.indexOf('说明') !== -1 || name.indexOf('readme') !== -1) return '使用说明文档，含安装或操作指引';
+      if (name.indexOf('安装') !== -1 || name.indexOf('setup') !== -1) return '软件安装程序，下载后双击运行';
+      if (name.indexOf('配置') !== -1 || name.indexOf('config') !== -1) return '配置文件，可自定义参数和选项';
+      return '根据文件名判断，这是一款实用工具/文档，下载后按说明使用';
     }
 
     function getCategoryFiles(category) {
@@ -978,7 +1066,7 @@
         return;
       }
 
-      fileCardsGrid.innerHTML = files.map(f => `
+      fileCardsGrid.innerHTML = files.map((f, idx) => `
         <div class="file-card">
           <div class="file-card-header">
             <div class="file-card-icon">${getFileIcon(f.name)}</div>
@@ -999,7 +1087,7 @@
                 </svg>
                 AI 解说
               </div>
-              <div>${getAIExplaination(f)}</div>
+              <div id="ai-explain-${idx}" class="ai-explain-text">正在分析...</div>
             </div>
             <div class="file-card-footer">
               <a href="${f.href}" class="btn btn-primary" download>
@@ -1010,7 +1098,7 @@
                 </svg>
                 下载
               </a>
-              <button class="btn btn-secondary" onclick="askAIAboutFile('${f.name}')">
+              <button class="btn btn-secondary" onclick="askAIAboutFile('${f.name.replace(/'/g, "\\'")}')">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
                 </svg>
@@ -1020,6 +1108,13 @@
           </div>
         </div>
       `).join("");
+
+      files.forEach((f, idx) => {
+        getAIExplaination(f).then(expl => {
+          const el = document.getElementById("ai-explain-" + idx);
+          if (el) el.textContent = expl;
+        });
+      });
     }
 
     function performSearch(query) {
@@ -1086,29 +1181,28 @@
       setTimeout(() => document.getElementById("panelInput").focus(), 100);
     }
 
-    function appendChatMessage(text, isUser = false) {
-      const panelBody = document.getElementById("panelBody");
-      const msgDiv = document.createElement("div");
-      msgDiv.className = `chat-message ${isUser ? "user" : "bot"}`;
-      msgDiv.innerHTML = `<div class="chat-bubble">${text}</div>`;
+    function appendChatMessage(text, isUser) {
+      if (isUser === undefined) isUser = false;
+      var panelBody = document.getElementById("panelBody");
+      var msgDiv = document.createElement("div");
+      msgDiv.className = 'chat-message ' + (isUser ? 'user' : 'bot');
+      msgDiv.innerHTML = '<div class="chat-bubble">' + text + '</div>';
       panelBody.appendChild(msgDiv);
       panelBody.scrollTop = panelBody.scrollHeight;
     }
 
     function appendChatFileCard(file) {
-      const panelBody = document.getElementById("panelBody");
-      const cardDiv = document.createElement("a");
+      var panelBody = document.getElementById("panelBody");
+      var cardDiv = document.createElement("a");
       cardDiv.className = "chat-file-card";
       cardDiv.href = file.href;
       cardDiv.download = "";
-      cardDiv.innerHTML = `
-        <div class="chat-file-icon">${getFileIcon(file.name)}</div>
-        <div class="chat-file-info">
-          <div class="chat-file-name" title="${file.name}">${file.name}</div>
-          <div class="chat-file-category">${file.category}</div>
-        </div>
-      `;
-      const wrapDiv = document.createElement("div");
+      cardDiv.innerHTML = '<div class="chat-file-icon">' + getFileIcon(file.name) + '</div>' +
+        '<div class="chat-file-info">' +
+        '<div class="chat-file-name" title="' + file.name + '">' + file.name + '</div>' +
+        '<div class="chat-file-category">' + file.category + '</div>' +
+        '</div>';
+      var wrapDiv = document.createElement("div");
       wrapDiv.className = "chat-message bot";
       wrapDiv.appendChild(cardDiv);
       panelBody.appendChild(wrapDiv);
@@ -1118,53 +1212,51 @@
     async function sendMessage(text) {
       if (!text.trim()) return;
 
-      const panelInput = document.getElementById("panelInput");
-      const panelSend = document.getElementById("panelSend");
+      var panelInput = document.getElementById("panelInput");
+      var panelSend = document.getElementById("panelSend");
+
+      if (_aiDisabled || !LLM_CONFIG.apiKey) {
+        appendChatMessage("AI 助手暂未配置，请联系管理员设置 API Key 后使用。", false);
+        return;
+      }
 
       appendChatMessage(text, true);
       panelInput.value = "";
       panelSend.disabled = true;
 
-      const loadingDiv = document.createElement("div");
+      var loadingDiv = document.createElement("div");
       loadingDiv.className = "chat-message bot";
       loadingDiv.id = "loading-msg";
-      loadingDiv.innerHTML = `<div class="chat-bubble">思考中...</div>`;
+      loadingDiv.innerHTML = '<div class="chat-bubble">思考中...</div>';
       document.getElementById("panelBody").appendChild(loadingDiv);
 
       try {
-        const availableFilesInfo = FILES.map(f => `- ${f.name} (分类: ${f.category})`).join("\n");
+        var availableFilesInfo = FILES.map(function(f) { return "- " + f.name + " (分类: " + f.category + ")"; }).join("\n");
         
-        const systemPrompt = `你是公司内网的专业 IT 服务助手。你的任务是友善、准确地帮助员工解决电脑、网络、软件等 IT 问题。
-如果能够直接解答技术问题，请给出清晰的步骤。
+        var systemPrompt = "你是公司内网的专业 IT 服务助手。你的任务是友善、准确地帮助员工解决电脑、网络、软件等 IT 问题。\n如果能够直接解答技术问题，请给出清晰的步骤。\n\n【当前可用文件】\n" + availableFilesInfo + "\n\n如果用户的请求可以通过上述文件解决，请解答问题，并且务必在回复中提到该文件的完整名称。回复要亲切、简洁、有帮助。";
 
-【当前可用文件】
-${availableFilesInfo}
+        var messages = [
+          { role: "system", content: systemPrompt }
+        ].concat(chatHistory).concat([{ role: "user", content: text }]);
 
-如果用户的请求可以通过上述文件解决，请解答问题，并且务必在回复中提到该文件的完整名称。回复要亲切、简洁、有帮助。`;
-
-        const messages = [
-          { role: "system", content: systemPrompt },
-          ...chatHistory,
-          { role: "user", content: text }
-        ];
-
-        const response = await fetch(LLM_CONFIG.baseURL, {
+        var response = await fetch(LLM_CONFIG.baseURL, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "Authorization": `Bearer ${LLM_CONFIG.apiKey}`
+            "Authorization": "Bearer " + LLM_CONFIG.apiKey
           },
           body: JSON.stringify({
             model: LLM_CONFIG.model,
             messages: messages,
-            temperature: 0.3
+            temperature: 0.3,
+            thinking: { type: "disabled" }
           })
         });
 
         if (!response.ok) throw new Error("API请求失败");
 
-        const data = await response.json();
-        const replyText = data.choices[0].message.content;
+        var data = await response.json();
+        var replyText = data.choices[0].message.content;
 
         chatHistory.push({ role: "user", content: text });
         chatHistory.push({ role: "assistant", content: replyText });
@@ -1173,21 +1265,30 @@ ${availableFilesInfo}
         document.getElementById("loading-msg").remove();
         appendChatMessage(replyText, false);
 
-        const mentionedFiles = FILES.filter(f => replyText.includes(f.name) || replyText.includes(f.name.split('.')[0]));
+        var mentionedFiles = FILES.filter(function(f) { return replyText.indexOf(f.name) !== -1 || replyText.indexOf(f.name.split('.')[0]) !== -1; });
         if (mentionedFiles.length > 0) {
-           const uniqueFiles = [...new Map(mentionedFiles.map(item => [item.name, item])).values()];
-           uniqueFiles.forEach(file => appendChatFileCard(file));
+           var uniqueFiles = [];
+           var seen = {};
+           mentionedFiles.forEach(function(file) {
+             if (!seen[file.name]) { seen[file.name] = true; uniqueFiles.push(file); }
+           });
+           uniqueFiles.forEach(function(file) { appendChatFileCard(file); });
         }
 
       } catch (error) {
-        document.getElementById("loading-msg")?.remove();
-        appendChatMessage("抱歉，连接有点问题 😅 请稍后再试，或者直接浏览文件列表！", false);
+        var loadingMsg = document.getElementById("loading-msg");
+        if (loadingMsg) loadingMsg.remove();
+        appendChatMessage("抱歉，连接有点问题 \u{1F605} 请稍后再试，或者直接浏览文件列表！", false);
       } finally {
         panelSend.disabled = false;
       }
     }
 
-    searchInput.addEventListener("input", (e) => performSearch(e.target.value));
+    var searchTimer = null;
+    searchInput.addEventListener("input", function(e) {
+      clearTimeout(searchTimer);
+      searchTimer = setTimeout(function() { performSearch(e.target.value); }, 300);
+    });
     searchInput.addEventListener("keydown", (e) => {
       if (e.key === "Escape") {
         searchResults.classList.remove("show");
@@ -1246,18 +1347,43 @@ ${availableFilesInfo}
     });
 
     function initApp() {
+      var overlay = document.getElementById("loadingOverlay");
+      if (overlay) overlay.classList.add("hidden");
       updateCounts();
       renderFileCards();
     }
   </script>
-  &lt;!-- 加载配置文件 --&gt;
-  &lt;script src="config.js"&gt;&lt;/script&gt;
-  
-  &lt;script&gt;
-    const dataScript = document.createElement('script');
-    dataScript.src = 'data.js?t=' + new Date().getTime();
-    dataScript.onload = () =&gt; { initApp(); };
-    document.body.appendChild(dataScript);
-  &lt;/script&gt;
+  <script>
+    (function loadData() {
+      var overlay = document.getElementById("loadingOverlay");
+      var loadingText = document.getElementById("loadingText");
+      var loadingError = document.getElementById("loadingError");
+      var spinner = document.querySelector(".loading-spinner");
+
+      var loadStartTime = Date.now();
+
+      var dataScript = document.createElement('script');
+      dataScript.src = 'data.js?t=' + loadStartTime;
+
+      dataScript.onload = function() {
+        overlay.classList.add('hidden');
+        initApp();
+      };
+
+      dataScript.onerror = function() {
+        if (loadingText) loadingText.style.display = 'none';
+        if (spinner) spinner.style.display = 'none';
+        if (loadingError) loadingError.classList.add('show');
+      };
+
+      document.body.appendChild(dataScript);
+
+      setTimeout(function() {
+        if (overlay && !overlay.classList.contains('hidden') && loadingError && !loadingError.classList.contains('show')) {
+          if (loadingText) loadingText.textContent = '\u9996\u6b21\u52a0\u8f7d\u8f83\u6162\uff0c\u8bf7\u8010\u5fc3\u7b49\u5f85...';
+        }
+      }, 5000);
+    })();
+  </script>
 </body>
 </html>

@@ -1,5 +1,5 @@
-
-// 配置文件示例，复制为 config.js 并填入你的 API Key
+// Copy this file to config.js and fill in your local Ark API Key.
+// Never commit config.js to GitHub.
 const CONFIG = {
   apiKey: "ark-your-api-key-here",
   model: "ark-code-latest"

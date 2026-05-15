@@ -1,0 +1,25 @@
+{
+  "name": "resource-centerwocao",
+  "version": "1.0.0",
+  "description": "Lightweight intranet resource center with file search, downloads, and an AI assistant proxy.",
+  "main": "proxy.js",
+  "scripts": {
+    "start": "node proxy.js",
+    "watch": "powershell.exe -ExecutionPolicy Bypass -File ./safe_watch.ps1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Aphelios-AI/Resource-Centerwocao.git"
+  },
+  "keywords": [
+    "resource-center",
+    "intranet",
+    "file-sharing",
+    "ai-assistant"
+  ],
+  "author": "Aphelios-AI",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  }
+}
